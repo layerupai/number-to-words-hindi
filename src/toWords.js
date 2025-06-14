@@ -7,27 +7,57 @@ var isSafeNumber = require('./isSafeNumber');
 var TEN = 10;
 var ONE_HUNDRED = 100;
 var ONE_THOUSAND = 1000;
-var ONE_MILLION = 1000000;
-var ONE_BILLION = 1000000000;           //         1.000.000.000 (9)
-var ONE_TRILLION = 1000000000000;       //     1.000.000.000.000 (12)
-var ONE_QUADRILLION = 1000000000000000; // 1.000.000.000.000.000 (15)
-var MAX = 9007199254740992;             // 9.007.199.254.740.992 (15)
+var ONE_LAKH = 100000; //   1,00,000  (10^5)
+var ONE_CRORE = 10000000; //   1,00,00,000  (10^7)
+var ONE_ARAB = 1000000000; //   1,00,00,00,000  (10^9)
+var ONE_KHARAB = 100000000000; //   1,00,00,00,00,000  (10^11)
+var ONE_NEEL = 10000000000000; //   1,00,00,00,00,00,000  (10^13)
+var ONE_PADMA = 1000000000000000; //   1,00,00,00,00,00,00,000  (10^15)
+var MAX = 9007199254740992; //   JavaScript MAX_SAFE_INTEGER + 1
 
 var LESS_THAN_TWENTY = [
-    'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
-    'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'
+    'zero',
+    'one',
+    'two',
+    'three',
+    'four',
+    'five',
+    'six',
+    'seven',
+    'eight',
+    'nine',
+    'ten',
+    'eleven',
+    'twelve',
+    'thirteen',
+    'fourteen',
+    'fifteen',
+    'sixteen',
+    'seventeen',
+    'eighteen',
+    'nineteen'
 ];
 
 var TENTHS_LESS_THAN_HUNDRED = [
-    'zero', 'ten', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'
+    'zero',
+    'ten',
+    'twenty',
+    'thirty',
+    'forty',
+    'fifty',
+    'sixty',
+    'seventy',
+    'eighty',
+    'ninety'
 ];
 
 /**
- * Converts an integer into words.
- * If number is decimal, the decimals will be removed.
- * @example toWords(12) => 'twelve'
+ * Converts an integer into words using Hindi number–group names
+ * (thousand → lakh → crore → arab → kharab → neel → padma).
+ * Decimals are truncated.
+ * @example toWords(123456) => 'one lakh twenty-three thousand four hundred fifty-six'
  * @param {number|string} number
- * @param {boolean} [asOrdinal] - Deprecated, use toWordsOrdinal() instead!
+ * @param {boolean} [asOrdinal] – deprecated; use toWordsOrdinal instead.
  * @returns {string}
  */
 function toWords(number, asOrdinal) {
@@ -48,61 +78,76 @@ function toWords(number, asOrdinal) {
     return asOrdinal ? makeOrdinal(words) : words;
 }
 
-function generateWords(number) {
-    var remainder, word,
-        words = arguments[1];
+function generateWords(number, words) {
+    var remainder, word;
 
-    // We’re done
+    // Base case
     if (number === 0) {
         return !words ? 'zero' : words.join(' ').replace(/,$/, '');
     }
-    // First run
+
+    // Initialise array on first call
     if (!words) {
         words = [];
     }
-    // If negative, prepend “minus”
+
+    // Handle negatives
     if (number < 0) {
         words.push('minus');
         number = Math.abs(number);
     }
 
+    /* ---- < 100 section (same as English) ------------------------------ */
     if (number < 20) {
         remainder = 0;
         word = LESS_THAN_TWENTY[number];
-
     } else if (number < ONE_HUNDRED) {
         remainder = number % TEN;
         word = TENTHS_LESS_THAN_HUNDRED[Math.floor(number / TEN)];
-        // In case of remainder, we need to handle it here to be able to add the “-”
         if (remainder) {
             word += '-' + LESS_THAN_TWENTY[remainder];
             remainder = 0;
         }
 
+        /* ---- 100 – 999 ---------------------------------------------------- */
     } else if (number < ONE_THOUSAND) {
         remainder = number % ONE_HUNDRED;
         word = generateWords(Math.floor(number / ONE_HUNDRED)) + ' hundred';
 
-    } else if (number < ONE_MILLION) {
+        /* ---- 1 000 – 99 999 ---------------------------------------------- */
+    } else if (number < ONE_LAKH) {
         remainder = number % ONE_THOUSAND;
         word = generateWords(Math.floor(number / ONE_THOUSAND)) + ' thousand,';
 
-    } else if (number < ONE_BILLION) {
-        remainder = number % ONE_MILLION;
-        word = generateWords(Math.floor(number / ONE_MILLION)) + ' million,';
+        /* ---- 1 00 000 – 99 99 999 (lakh) ---------------------------------- */
+    } else if (number < ONE_CRORE) {
+        remainder = number % ONE_LAKH;
+        word = generateWords(Math.floor(number / ONE_LAKH)) + ' lakh,';
 
-    } else if (number < ONE_TRILLION) {
-        remainder = number % ONE_BILLION;
-        word = generateWords(Math.floor(number / ONE_BILLION)) + ' billion,';
+        /* ---- 1 00 00 000 – 99 99 99 999 (crore) --------------------------- */
+    } else if (number < ONE_ARAB) {
+        remainder = number % ONE_CRORE;
+        word = generateWords(Math.floor(number / ONE_CRORE)) + ' crore,';
 
-    } else if (number < ONE_QUADRILLION) {
-        remainder = number % ONE_TRILLION;
-        word = generateWords(Math.floor(number / ONE_TRILLION)) + ' trillion,';
+        /* ---- 1 00 00 00 000 – 99 99 99 99 999 (arab) ---------------------- */
+    } else if (number < ONE_KHARAB) {
+        remainder = number % ONE_ARAB;
+        word = generateWords(Math.floor(number / ONE_ARAB)) + ' arab,';
 
+        /* ---- 1 00 00 00 00 000 – 99 99 99 99 99 999 (kharab) ------------- */
+    } else if (number < ONE_NEEL) {
+        remainder = number % ONE_KHARAB;
+        word = generateWords(Math.floor(number / ONE_KHARAB)) + ' kharab,';
+
+        /* ---- 1 00 00 00 00 00 000 – 99 99 99 99 99 99 999 (neel) --------- */
+    } else if (number < ONE_PADMA) {
+        remainder = number % ONE_NEEL;
+        word = generateWords(Math.floor(number / ONE_NEEL)) + ' neel,';
+
+        /* ---- 1 00 00 00 00 00 00 000 – JS max (padma) --------------------- */
     } else if (number <= MAX) {
-        remainder = number % ONE_QUADRILLION;
-        word = generateWords(Math.floor(number / ONE_QUADRILLION)) +
-        ' quadrillion,';
+        remainder = number % ONE_PADMA;
+        word = generateWords(Math.floor(number / ONE_PADMA)) + ' padma,';
     }
 
     words.push(word);
