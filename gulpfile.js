@@ -1,6 +1,5 @@
 'use strict';
 
-var fs = require('fs');
 var gulp = require('gulp');
 var gulpPlugins = {
     concat: require('gulp-concat'),
@@ -16,7 +15,7 @@ var pkg = require('./package.json');
 
 function bundleTask() {
     var USE_STRICT_PATTERN = /(['"]use strict['"];?\n?)/g;
-    var REQUIRE_PATTERN = /((?:var |,)[^=]+=\s*require\([^\)]+\);?\n?)/g;
+    var REQUIRE_PATTERN = /((?:var |,)[^=]+=\s*require\([^)]+\);?\n?)/g;
     var EXPORT_PATTERN = /((?:module\.)?exports\s*=\s*[^,;]+;?\n?)/g;
 
     var files = [
